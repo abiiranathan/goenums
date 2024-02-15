@@ -1,63 +1,28 @@
-package enums
+package gotypes
 
-type Sex string
+type Role string
 
 const (
-	SexM Sex = "M"
-	SexF Sex = "F"
+	RoleAdmin       Role = "admin"
+	RoleRegularUser Role = "regular_user"
 )
 
-func (e Sex) String() string {
+func (e Role) String() string {
 	return string(e)
 }
 
-func (e Sex) GormDataType() string {
-	return "sex"
+func (e Role) GormDataType() string {
+	return "role"
 }
 
-func (e Sex) ValidValues() []string {
+func (e Role) ValidValues() []string {
 	return []string{
-		"M",
-		"F",
+		"admin",
+		"regular_user",
 	}
 }
 
-func (e Sex) IsValid() bool {
-	for _, v := range e.ValidValues() {
-		if string(e) == v {
-			return true
-		}
-	}
-	return false
-}
-
-type MaritalStatus string
-
-const (
-	MaritalStatusS MaritalStatus = "S"
-	MaritalStatusM MaritalStatus = "M"
-	MaritalStatusD MaritalStatus = "D"
-	MaritalStatusW MaritalStatus = "W"
-)
-
-func (e MaritalStatus) String() string {
-	return string(e)
-}
-
-func (e MaritalStatus) GormDataType() string {
-	return "marital_status"
-}
-
-func (e MaritalStatus) ValidValues() []string {
-	return []string{
-		"S",
-		"M",
-		"D",
-		"W",
-	}
-}
-
-func (e MaritalStatus) IsValid() bool {
+func (e Role) IsValid() bool {
 	for _, v := range e.ValidValues() {
 		if string(e) == v {
 			return true
@@ -101,29 +66,64 @@ func (e Status) IsValid() bool {
 	return false
 }
 
-type Role string
+type MaritalStatus string
 
 const (
-	RoleAdmin       Role = "admin"
-	RoleRegularUser Role = "regular_user"
+	MaritalStatusS MaritalStatus = "S"
+	MaritalStatusM MaritalStatus = "M"
+	MaritalStatusD MaritalStatus = "D"
+	MaritalStatusW MaritalStatus = "W"
 )
 
-func (e Role) String() string {
+func (e MaritalStatus) String() string {
 	return string(e)
 }
 
-func (e Role) GormDataType() string {
-	return "role"
+func (e MaritalStatus) GormDataType() string {
+	return "marital_status"
 }
 
-func (e Role) ValidValues() []string {
+func (e MaritalStatus) ValidValues() []string {
 	return []string{
-		"admin",
-		"regular_user",
+		"S",
+		"M",
+		"D",
+		"W",
 	}
 }
 
-func (e Role) IsValid() bool {
+func (e MaritalStatus) IsValid() bool {
+	for _, v := range e.ValidValues() {
+		if string(e) == v {
+			return true
+		}
+	}
+	return false
+}
+
+type Sex string
+
+const (
+	SexM Sex = "M"
+	SexF Sex = "F"
+)
+
+func (e Sex) String() string {
+	return string(e)
+}
+
+func (e Sex) GormDataType() string {
+	return "sex"
+}
+
+func (e Sex) ValidValues() []string {
+	return []string{
+		"M",
+		"F",
+	}
+}
+
+func (e Sex) IsValid() bool {
 	for _, v := range e.ValidValues() {
 		if string(e) == v {
 			return true

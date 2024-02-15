@@ -28,8 +28,8 @@ struct HashMap {
   struct HashNode* table[HASH_SIZE];
 };
 
-void insert(struct HashMap* map, const char* key, struct Enum* value);
-struct Enum* get(struct HashMap* map, const char* key);
+void map_insert(struct HashMap* map, const char* key, struct Enum* value);
+struct Enum* map_get(struct HashMap* map, const char* key);
 void init_hash_map(struct HashMap* map);
 void free_hash_map(struct HashMap* map);
 
@@ -47,7 +47,7 @@ int ci_sscanf(const char* input, const char* format, ...);
 
 
 // Generator
-void write_enums_map_to_go_file(FILE* go_file, struct HashMap* map);
+void write_enums_map_to_go_file(FILE* go_file, const char* pkg, struct HashMap* map);
 
 void format_go_file(const char* filename);
 

@@ -1,15 +1,19 @@
 #include "lib.h"
+#include <stdio.h>
 
+// djb2 hash function
+// http://www.cse.yorku.ca/~oz/hash.html
 unsigned int djb2_hash(const char* str) {
   unsigned int hash = 5381;
   int c;
   while ((c = *str++)) {
-    hash = ((hash << 5) + hash) + c;
+    hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
   }
   return hash % HASH_SIZE;
 }
 
-void insert(struct HashMap* map, const char* key, struct Enum* value) {
+// Insert a key-value pair into the hash map
+void map_insert(struct HashMap* map, const char* key, struct Enum* value) {
   unsigned int hashval = djb2_hash(key);
   struct HashNode* new_node = calloc(1, sizeof(struct HashNode));
   if (new_node == NULL) {
@@ -27,7 +31,8 @@ void insert(struct HashMap* map, const char* key, struct Enum* value) {
   map->table[hashval] = new_node;
 }
 
-struct Enum* get(struct HashMap* map, const char* key) {
+// Get the value for a key from the hash map
+struct Enum* map_get(struct HashMap* map, const char* key) {
   unsigned int hashval = djb2_hash(key);
   struct HashNode* current = map->table[hashval];
   while (current != NULL) {
@@ -39,12 +44,14 @@ struct Enum* get(struct HashMap* map, const char* key) {
   return NULL;
 }
 
+// Initialize the hash map
 void init_hash_map(struct HashMap* map) {
   for (int i = 0; i < HASH_SIZE; i++) {
     map->table[i] = NULL;
   }
 }
 
+// Free the hash map
 void free_hash_map(struct HashMap* map) {
   for (int i = 0; i < HASH_SIZE; i++) {
     struct HashNode* current = map->table[i];
@@ -157,6 +164,11 @@ void pascal_case(char* str) {
 }
 
 static void write_enum_to_go_file(FILE* go_file, struct Enum* e) {
+  if (e == NULL) {
+    fprintf(stderr, "Error: write_enum_to_go_file(): Enum is NULL\n");
+    exit(1);
+  }
+
   char originalType[MAX_LINE_LENGTH];
   if (strlen(e->name) > MAX_LINE_LENGTH - 1) {
     fprintf(stderr, "Error: Type name %s longer than %d characters\n", e->name,
@@ -213,10 +225,12 @@ static void write_enum_to_go_file(FILE* go_file, struct Enum* e) {
   fprintf(go_file, "}\n\n");
 }
 
-void write_enums_map_to_go_file(FILE* go_file, struct HashMap* map) {
-  for (int i = HASH_SIZE; i > 0; i--) {
+void write_enums_map_to_go_file(FILE* go_file, const char* pkg, struct HashMap* map) {
+  fprintf(go_file, "package %s\n\n", pkg);
+
+  for (size_t i = 0; i < HASH_SIZE; ++i) {
     struct HashNode* current = map->table[i];
-    while (current) {
+    while (current != NULL) {
       write_enum_to_go_file(go_file, &(current->value));
       current = current->next;
     }

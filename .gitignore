@@ -1,0 +1,6 @@
+goenums
+build
+*.so
+*.dylib
+*.a
+*.exe

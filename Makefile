@@ -8,7 +8,7 @@ TARGET = goenums
 
 .PHONY: all go clean
 
-all: c go-linux go-windows
+all: c go-windows
 
 # Pure C executable
 c: $(SRC)

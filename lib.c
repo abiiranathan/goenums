@@ -163,7 +163,34 @@ void pascal_case(char* str) {
   }
 }
 
-static void write_enum_to_go_file(FILE* go_file, struct Enum* e) {
+static void sanitize_variable_name(char* str) {
+  if (str == NULL) {
+    return;
+  }
+
+  size_t str_len = strlen(str);
+  if (str_len == 0) {
+    return;
+  }
+
+  for (size_t i = 0; i < str_len; i++) {
+    if (str[i] == ' ' || str[i] == '-') {
+      str[i] = '_';
+    }
+  }
+
+  // Remove all non-alphanumeric characters
+  int j = 0;
+  for (size_t i = 0; i < str_len; i++) {
+    if (isalnum(str[i])) {
+      str[j] = str[i];
+      j++;
+    }
+  }
+  str[j] = '\0';
+}
+
+static void write_enum_to_go_file(FILE* file, struct Enum* e) {
   if (e == NULL) {
     fprintf(stderr, "Error: write_enum_to_go_file(): Enum is NULL\n");
     exit(1);
@@ -183,55 +210,61 @@ static void write_enum_to_go_file(FILE* go_file, struct Enum* e) {
   // Convert the type name to pascal case
   pascal_case(e->name);
 
-  fprintf(go_file, "type %s string\n\n", e->name);
-  fprintf(go_file, "const (\n");
+  // Remove spaces and non-alphanumeric characters from the type name
+  sanitize_variable_name(e->name);
+
+  fprintf(file, "type %s string\n\n", e->name);
+  fprintf(file, "const (\n");
   for (int i = 0; i < e->num_values; i++) {
     char pascalCaseValue[MAX_LINE_LENGTH];
     strncpy(pascalCaseValue, e->values[i], MAX_LINE_LENGTH - 1);
     pascalCaseValue[MAX_LINE_LENGTH - 1] = '\0';
     pascal_case(pascalCaseValue);
-    fprintf(go_file, "  %s%s %s = \"%s\"\n", e->name, pascalCaseValue, e->name, e->values[i]);
+
+    // Remove spaces and non-alphanumeric characters.
+    sanitize_variable_name(pascalCaseValue);
+    fprintf(file, "  %s%s %s = \"%s\"\n", e->name, pascalCaseValue, e->name, e->values[i]);
   }
 
-  fprintf(go_file, ")\n\n");
+  fprintf(file, ")\n\n");
 
   // Implement the Stringer interface
-  fprintf(go_file, "func (e %s) String() string {\n", e->name);
-  fprintf(go_file, "  return string(e)\n");
-  fprintf(go_file, "}\n\n");
+  fprintf(file, "func (e %s) String() string {\n", e->name);
+  fprintf(file, "  return string(e)\n");
+  fprintf(file, "}\n\n");
 
   // Gorm data type as the original string()
-  fprintf(go_file, "func (e %s) GormDataType() string {\n", e->name);
-  fprintf(go_file, "  return \"%s\"\n", originalType);
-  fprintf(go_file, "}\n\n");
+  fprintf(file, "func (e %s) GormDataType() string {\n", e->name);
+  fprintf(file, "  return \"%s\"\n", originalType);
+  fprintf(file, "}\n\n");
 
   // implement function ValidValues() that returns a slice of all valid values
-  fprintf(go_file, "func (e %s) ValidValues() []string {\n", e->name);
-  fprintf(go_file, "  return []string{\n");
+  fprintf(file, "func (e %s) ValidValues() []string {\n", e->name);
+  fprintf(file, "  return []string{\n");
   for (int i = 0; i < e->num_values; i++) {
-    fprintf(go_file, "    \"%s\",\n", e->values[i]);
+    fprintf(file, "    \"%s\",\n", e->values[i]);
   }
-  fprintf(go_file, "  }\n");
-  fprintf(go_file, "}\n\n");
+  fprintf(file, "  }\n");
+  fprintf(file, "}\n\n");
 
   // implement function IsValid() that returns true if the value is valid
-  fprintf(go_file, "func (e %s) IsValid() bool {\n", e->name);
-  fprintf(go_file, "  for _, v := range e.ValidValues() {\n");
-  fprintf(go_file, "    if string(e) == v {\n");
-  fprintf(go_file, "      return true\n");
-  fprintf(go_file, "    }\n");
-  fprintf(go_file, "  }\n");
-  fprintf(go_file, "  return false\n");
-  fprintf(go_file, "}\n\n");
+  fprintf(file, "func (e %s) IsValid() bool {\n", e->name);
+  fprintf(file, "  for _, v := range e.ValidValues() {\n");
+  fprintf(file, "    if string(e) == v {\n");
+  fprintf(file, "      return true\n");
+  fprintf(file, "    }\n");
+  fprintf(file, "  }\n");
+  fprintf(file, "  return false\n");
+  fprintf(file, "}\n\n");
 }
 
-void write_enums_map_to_go_file(FILE* go_file, const char* pkg, struct HashMap* map) {
-  fprintf(go_file, "package %s\n\n", pkg);
+void write_enums_map_to_go_file(FILE* file, const char* pkg, struct HashMap* map) {
+  fprintf(file, "package %s\n\n", pkg);
 
   for (size_t i = 0; i < HASH_SIZE; ++i) {
     struct HashNode* current = map->table[i];
     while (current != NULL) {
-      write_enum_to_go_file(go_file, &(current->value));
+      write_enum_to_go_file(file, &(current->value));
       current = current->next;
     }
   }
